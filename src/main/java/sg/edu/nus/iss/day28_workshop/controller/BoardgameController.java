@@ -22,7 +22,13 @@ public class BoardgameController {
     @Autowired
     private BoardgameService service;
 
-    @GetMapping(path = "/review/{cId}")
+    @GetMapping(path = {"/", "/index"})
+    public ResponseEntity<String> getIndex() {
+
+        return ResponseEntity.ok().body(service.getIndexJson());
+    }
+
+    @GetMapping("/review/{cId}")
     public ResponseEntity<String> getComment(@PathVariable String cId) {
 
         Optional<String> result = service.getCommentByCid(cId);

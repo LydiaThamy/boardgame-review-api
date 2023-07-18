@@ -7,6 +7,7 @@ import java.util.Optional;
 import org.bson.Document;
 // import org.bson.json.JsonObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.AddFieldsOperation;
@@ -16,6 +17,7 @@ import org.springframework.data.mongodb.core.aggregation.LookupOperation;
 import org.springframework.data.mongodb.core.aggregation.MatchOperation;
 import org.springframework.data.mongodb.core.aggregation.ProjectionOperation;
 import org.springframework.data.mongodb.core.aggregation.SkipOperation;
+import org.springframework.data.mongodb.core.aggregation.SortOperation;
 import org.springframework.data.mongodb.core.aggregation.StringOperators;
 import org.springframework.data.mongodb.core.aggregation.AccumulatorOperators.Avg;
 import org.springframework.data.mongodb.core.aggregation.ArrayOperators.ArrayElemAt;
@@ -220,7 +222,13 @@ public class BoardgameRepo {
                 }},
                 { $project: { name: 1, rating: 1, user: 1, comment: 1, review_id: 1 }},
                 { $skip: 5},
-                { $limit: 5 }
+                { $limit: 5 },
+                { $match: 
+                    { rating: {$exists: true},
+                      user: {$exists: true},
+                      comment: {$exists: true},
+                      review_id: {$exists: true}}
+                    }
                 
             //    { $project: { gid: 0, year: 0, ranking: 0, users_rated: 0, url: 0, image: 0, reviews: 0 }}
                 
@@ -269,11 +277,18 @@ public class BoardgameRepo {
         
         ProjectionOperation projectFields = Aggregation.project(F_ID, F_NAME, F_RATING, F_USER, F_COMMENT, F_REVIEW_ID);
 
+        MatchOperation matchReviews = Aggregation.match(
+            Criteria.where(F_RATING).exists(true)
+                .and(F_USER).exists(true)
+                .and(F_COMMENT).exists(true)
+                .and(F_REVIEW_ID).exists(true)
+        );
+
         SkipOperation skipResults = Aggregation.skip(skip);
 
         LimitOperation limitResults = Aggregation.limit(limit);
 
-        Aggregation pipeline = Aggregation.newAggregation(lookupComments, addFields, projectFields, skipResults, limitResults);
+        Aggregation pipeline = Aggregation.newAggregation(lookupComments, addFields, projectFields, matchReviews, skipResults, limitResults);
 
         return template.aggregate(pipeline, C_GAMES, Document.class).getMappedResults();
     }
@@ -302,7 +317,13 @@ public class BoardgameRepo {
                 }},
                 { $project: { name: 1, rating: 1, user: 1, comment: 1, review_id: 1 }},
                 { $skip: 5},
-                { $limit: 5 }
+                { $limit: 5 },
+                { $match: 
+                    { rating: {$exists: true},
+                      user: {$exists: true},
+                      comment: {$exists: true},
+                      review_id: {$exists: true}}
+                    }
 
             ])
          */
@@ -331,12 +352,23 @@ public class BoardgameRepo {
                 .build();
         
         ProjectionOperation projectFields = Aggregation.project(F_ID, F_NAME, F_RATING, F_USER, F_COMMENT, F_REVIEW_ID);
+        
+        MatchOperation matchReviews = Aggregation.match(
+            Criteria.where(F_RATING).exists(true)
+                .and(F_USER).exists(true)
+                .and(F_COMMENT).exists(true)
+                .and(F_REVIEW_ID).exists(true)
+        );
+
+        // SortOperation sortReviews = Aggregation.sort(
+        //     Sort.by(Direction.ASC, F_RATING)
+        // );
 
         SkipOperation skipResults = Aggregation.skip(skip);
 
         LimitOperation limitResults = Aggregation.limit(limit);
 
-        Aggregation pipeline = Aggregation.newAggregation(lookupComments, addFields, projectFields, skipResults, limitResults);
+        Aggregation pipeline = Aggregation.newAggregation(lookupComments, addFields, projectFields, matchReviews, skipResults, limitResults);
 
         return template.aggregate(pipeline, C_GAMES, Document.class).getMappedResults();
     }

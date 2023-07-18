@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import jakarta.json.Json;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
+import jakarta.json.JsonObjectBuilder;
 import sg.edu.nus.iss.day28_workshop.Utility;
 import sg.edu.nus.iss.day28_workshop.repository.BoardgameRepo;
 
@@ -98,9 +99,22 @@ public class BoardgameService {
             .build()
             .toString();
 
-    }
+        }
+        
+        // public List<Document> getHighestRatings() {
+        //     return repo.getHighestRatings();
+        // }
 
-    // public List<Document> getHighestRatings() {
-    //     return repo.getHighestRatings();
-    // }
+    public String getIndexJson() {
+        
+        return Json.createObjectBuilder()
+                .add("game", "/game/<game_id>")
+                .add("review", "/review/<review_id>")
+                .add("game with reviews", "game/<game_id>/reviews")
+                .add("games with highest review", "/games/highest")
+                .add("games with lowest review", "/games/lowest")
+                .build()
+                .toString();
+
+    }
 } 
